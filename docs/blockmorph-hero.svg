@@ -1,0 +1,101 @@
+<svg width="1200" height="760" viewBox="0 0 1200 760" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">BlockMorph neon cube hero</title>
+  <desc id="desc">A black void background with glowing neon green wireframe cubes and a vertical BlockMorph wordmark.</desc>
+  <defs>
+    <radialGradient id="voidGlow" cx="50%" cy="42%" r="62%">
+      <stop offset="0%" stop-color="#09240d"/>
+      <stop offset="42%" stop-color="#020402"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </radialGradient>
+    <filter id="greenGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="whiteGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <style>
+      .wire {
+        stroke: #39ff5a;
+        stroke-width: 5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        filter: url(#greenGlow);
+      }
+      .wire-thin {
+        stroke: #39ff5a;
+        stroke-width: 3.2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        filter: url(#greenGlow);
+      }
+      .word {
+        fill: transparent;
+        stroke: #f7fff8;
+        stroke-width: 2.5;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        font-size: 86px;
+        font-weight: 900;
+        letter-spacing: -0.08em;
+        filter: url(#whiteGlow);
+      }
+      .word-shadow {
+        fill: transparent;
+        stroke: #39ff5a;
+        stroke-width: 1.5;
+        opacity: 0.72;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        font-size: 86px;
+        font-weight: 900;
+        letter-spacing: -0.08em;
+        transform: translate(7px, 7px);
+      }
+      .scanline {
+        stroke: rgba(57, 255, 90, 0.08);
+        stroke-width: 1;
+      }
+    </style>
+  </defs>
+
+  <rect width="1200" height="760" fill="url(#voidGlow)"/>
+  <g opacity="0.52">
+    <path class="scanline" d="M0 92H1200"/>
+    <path class="scanline" d="M0 184H1200"/>
+    <path class="scanline" d="M0 276H1200"/>
+    <path class="scanline" d="M0 368H1200"/>
+    <path class="scanline" d="M0 460H1200"/>
+    <path class="scanline" d="M0 552H1200"/>
+    <path class="scanline" d="M0 644H1200"/>
+  </g>
+
+  <g transform="translate(155 105)">
+    <path class="wire" d="M30 25L745 12L930 85L890 630L110 570L30 25Z"/>
+    <path class="wire" d="M745 12L710 520L890 630"/>
+    <path class="wire" d="M930 85L710 520"/>
+    <path class="wire" d="M30 25L710 35L930 85"/>
+    <path class="wire" d="M110 570L245 402L710 520"/>
+    <path class="wire" d="M245 402L245 34"/>
+
+    <path class="wire-thin" d="M470 170L670 180L642 405L445 380L470 170Z"/>
+    <path class="wire-thin" d="M350 250L470 170"/>
+    <path class="wire-thin" d="M350 420L445 380"/>
+    <path class="wire-thin" d="M350 250L545 260L670 180"/>
+    <path class="wire-thin" d="M350 250L350 420L545 445L642 405"/>
+    <path class="wire-thin" d="M545 260L545 445"/>
+    <path class="wire-thin" d="M350 420L545 260"/>
+  </g>
+
+  <g transform="translate(840 638) rotate(-90)">
+    <text class="word-shadow" x="0" y="0">BlockMorph</text>
+    <text class="word" x="0" y="0">BlockMorph</text>
+    <text class="word" x="5" y="5" opacity="0.48">BlockMorph</text>
+    <text class="word" x="-5" y="-5" opacity="0.35">BlockMorph</text>
+  </g>
+</svg>
