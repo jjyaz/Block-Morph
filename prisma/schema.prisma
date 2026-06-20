@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Campaign {
+  id               String          @id @default(cuid())
+  campaignId       String          @unique
+  name             String
+  minWalletAgeDays Int
+  minTxCount       Int
+  minSolBalance    Float
+  minVolume90dSol  Float
+  allowedTiersJson String          @default("[1,2,3,4]")
+  maxRegistrations Int?
+  expiresAt        DateTime
+  webhookUrl       String?
+  apiKeyHash       String
+  policyHash       String
+  enabled          Boolean         @default(true)
+  createdAt        DateTime        @default(now())
+  registrations    Registration[]
+  issuedCapsules   IssuedCapsule[]
+  webhookEvents    WebhookEvent[]
+}
+
+model Registration {
+  id           String   @id @default(cuid())
+  campaignId   String
+  morphWallet  String
+  capsuleId    String
+  nullifier    String
+  tier         Int
+  tierLabel    String
+  registeredAt DateTime @default(now())
+  campaign     Campaign @relation(fields: [campaignId], references: [campaignId])
+
+  @@unique([campaignId, morphWallet])
+  @@unique([campaignId, nullifier])
+}
+
+model IssuedCapsule {
+  id          String   @id @default(cuid())
+  capsuleId   String   @unique
+  campaignId  String
+  morphWallet String
+  nullifier   String
+  tier        Int
+  tierLabel   String
+  expiresAt   DateTime
+  issuedAt    DateTime @default(now())
+  campaign    Campaign @relation(fields: [campaignId], references: [campaignId])
+
+  @@unique([campaignId, nullifier])
+}
+
+model WebhookEvent {
+  id          String   @id @default(cuid())
+  campaignId  String
+  eventType   String
+  payloadJson String
+  status      String
+  createdAt   DateTime @default(now())
+  campaign    Campaign @relation(fields: [campaignId], references: [campaignId])
+}
+
+model ChallengeNonce {
+  id        String    @id @default(cuid())
+  nonce     String    @unique
+  wallet    String?
+  usedAt    DateTime?
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+}

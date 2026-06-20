@@ -1,0 +1,19 @@
+{
+  "name": "@blockmorph/sdk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    }
+  },
+  "dependencies": {
+    "@solana/web3.js": "latest",
+    "bs58": "latest",
+    "js-sha256": "latest",
+    "tweetnacl": "latest",
+    "zod": "latest"
+  }
+}

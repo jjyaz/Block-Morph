@@ -1,0 +1,63 @@
+@import "@solana/wallet-adapter-react-ui/styles.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: #000000;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 30% 10%, rgba(57, 255, 90, 0.14), transparent 28rem),
+    radial-gradient(circle at 80% 20%, rgba(32, 255, 70, 0.08), transparent 24rem),
+    #000000;
+  color: #d9ffe0;
+}
+
+body::before {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  content: "";
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(57, 255, 90, 0.035),
+    rgba(57, 255, 90, 0.035) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  mix-blend-mode: screen;
+  opacity: 0.28;
+}
+
+::selection {
+  background: rgba(57, 255, 90, 0.3);
+  color: white;
+}
+
+.wallet-adapter-button {
+  border: 1px solid rgba(57, 255, 90, 0.5) !important;
+  border-radius: 0.75rem !important;
+  background: rgba(40, 255, 90, 0.08) !important;
+  color: #d9ffe0 !important;
+  font-family: var(--font-geist-mono), monospace !important;
+  height: 42px !important;
+}
+
+.wallet-adapter-modal-wrapper {
+  background: #030603 !important;
+  border: 1px solid rgba(57, 255, 90, 0.28) !important;
+}
