@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 
-import { CampaignPolicyBuilder } from "@/components/CampaignPolicyBuilder";
+import { CampaignPolicyBuilder, type CampaignDraft } from "@/components/CampaignPolicyBuilder";
 import { TerminalPanel } from "@/components/TerminalPanel";
 import { WireframeCard } from "@/components/WireframeCard";
 
 type Campaign = {
+  allowedTiers: number[];
   campaignId: string;
   enabled: boolean;
   expiresAt: string;
@@ -28,10 +29,15 @@ type Registration = {
 };
 
 export default function CampaignsPage() {
+  const [builderDraft, setBuilderDraft] = useState<CampaignDraft | null>(null);
+  const [builderDraftKey, setBuilderDraftKey] = useState(0);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [selected, setSelected] = useState<string>("");
   const [apiKey, setApiKey] = useState("");
+  const [apiKeyVisible, setApiKeyVisible] = useState(false);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [rotateModalOpen, setRotateModalOpen] = useState(false);
+  const [webhookResult, setWebhookResult] = useState<Record<string, unknown> | null>(null);
   const [status, setStatus] = useState("");
 
   async function loadCampaigns() {
@@ -75,6 +81,7 @@ export default function CampaignsPage() {
   }
 
   async function rotateApiKey() {
+    setRotateModalOpen(false);
     const response = await fetch(`/api/campaigns/${selected}`, {
       body: JSON.stringify({ action: "rotate-api-key" }),
       headers: {
@@ -89,6 +96,7 @@ export default function CampaignsPage() {
       return;
     }
     setApiKey(json.apiKey);
+    setApiKeyVisible(true);
     setStatus("API key rotated. Store the new value now.");
   }
 
@@ -126,6 +134,56 @@ export default function CampaignsPage() {
     URL.revokeObjectURL(url);
   }
 
+  function duplicateCampaign() {
+    if (!current) {
+      return;
+    }
+
+    const suffix = new Date().toISOString().slice(0, 10).replaceAll("-", "");
+    setBuilderDraft({
+      allowedTiers: current.allowedTiers,
+      campaignId: `${current.campaignId}-copy-${suffix}`,
+      expiresAt: toLocalDateTime(current.expiresAt),
+      maxRegistrations: current.maxRegistrations ? String(current.maxRegistrations) : "",
+      minSolBalance: String(current.minSolBalance),
+      minTxCount: String(current.minTxCount),
+      minVolume90dSol: String(current.minVolume90dSol),
+      minWalletAgeDays: String(current.minWalletAgeDays),
+      name: `${current.name} copy`,
+      webhookUrl: "",
+    });
+    setBuilderDraftKey((key) => key + 1);
+    setStatus("Campaign duplicated into the builder. Review webhook URL and slug before launch.");
+  }
+
+  async function copyApiKey() {
+    if (!apiKey) {
+      setStatus("Paste or rotate a campaign API key before copying.");
+      return;
+    }
+
+    await navigator.clipboard.writeText(apiKey);
+    setStatus("Campaign API key copied.");
+  }
+
+  async function testWebhook() {
+    if (!selected) {
+      return;
+    }
+
+    setWebhookResult({ status: "Sending webhook test..." });
+    const response = await fetch("/api/webhooks/test", {
+      body: JSON.stringify({ campaignId: selected }),
+      headers: { "content-type": "application/json" },
+      method: "POST",
+    });
+    const json = await response.json();
+    setWebhookResult({
+      httpStatus: response.status,
+      ...json,
+    });
+  }
+
   const current = campaigns.find((campaign) => campaign.campaignId === selected);
   const counts = registrations.reduce<Record<string, number>>((acc, registration) => {
     acc[registration.tierLabel] = (acc[registration.tierLabel] ?? 0) + 1;
@@ -138,7 +196,11 @@ export default function CampaignsPage() {
       <h1 className="mt-3 font-mono text-4xl text-green-50">Launch gates without collecting main wallets.</h1>
       <div className="mt-8 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <WireframeCard>
-          <CampaignPolicyBuilder onCreated={loadCampaigns} />
+          <CampaignPolicyBuilder
+            draft={builderDraft}
+            key={builderDraftKey}
+            onCreated={loadCampaigns}
+          />
         </WireframeCard>
         <div className="grid gap-6">
           <TerminalPanel title="Campaign operations">
@@ -162,12 +224,31 @@ export default function CampaignsPage() {
               </label>
               <label className="grid gap-2">
                 <span className="font-mono text-xs uppercase tracking-[0.16em] text-green-300/70">Campaign API key</span>
-                <input
-                  className="rounded-xl border border-neon/25 bg-black/80 p-3"
-                  onChange={(event) => setApiKey(event.target.value)}
-                  placeholder="bm_..."
-                  value={apiKey}
-                />
+                <div className="grid gap-2 rounded-xl border border-neon/20 bg-black/60 p-2">
+                  <input
+                    className="rounded-lg border border-neon/25 bg-black/80 p-3"
+                    onChange={(event) => setApiKey(event.target.value)}
+                    placeholder="bm_..."
+                    type={apiKeyVisible ? "text" : "password"}
+                    value={apiKey}
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      className="rounded-lg border border-neon/25 px-3 py-1 text-sm text-neon"
+                      onClick={() => setApiKeyVisible((visible) => !visible)}
+                      type="button"
+                    >
+                      {apiKeyVisible ? "Hide" : "Reveal"}
+                    </button>
+                    <button
+                      className="rounded-lg border border-neon/25 px-3 py-1 text-sm text-neon"
+                      onClick={copyApiKey}
+                      type="button"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
               </label>
               <div className="flex flex-wrap gap-3">
                 <button className="rounded-xl border border-neon/30 px-4 py-2 text-neon" onClick={() => loadRegistrations()} type="button">
@@ -176,7 +257,13 @@ export default function CampaignsPage() {
                 <button className="rounded-xl border border-neon/30 px-4 py-2 text-neon" onClick={exportCsv} type="button">
                   Export CSV whitelist
                 </button>
-                <button className="rounded-xl border border-neon/30 px-4 py-2 text-neon" onClick={rotateApiKey} type="button">
+                <button className="rounded-xl border border-neon/30 px-4 py-2 text-neon" onClick={duplicateCampaign} type="button">
+                  Duplicate campaign
+                </button>
+                <button className="rounded-xl border border-neon/30 px-4 py-2 text-neon" onClick={testWebhook} type="button">
+                  Test webhook
+                </button>
+                <button className="rounded-xl border border-yellow-300/40 px-4 py-2 text-yellow-100" onClick={() => setRotateModalOpen(true)} type="button">
                   Rotate API key
                 </button>
                 <button className="rounded-xl border border-red-400/40 px-4 py-2 text-red-200" onClick={() => setEnabled(false)} type="button">
@@ -187,6 +274,11 @@ export default function CampaignsPage() {
                 </button>
               </div>
               {status ? <p>{status}</p> : null}
+              {webhookResult ? (
+                <pre className="max-h-64 overflow-auto rounded-xl border border-neon/15 bg-black/70 p-3 text-xs text-green-100">
+                  {JSON.stringify(webhookResult, null, 2)}
+                </pre>
+              ) : null}
             </div>
           </TerminalPanel>
           {current ? (
@@ -226,6 +318,41 @@ export default function CampaignsPage() {
           </WireframeCard>
         </div>
       </div>
+      {rotateModalOpen ? (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/80 px-5 backdrop-blur">
+          <div className="max-w-lg rounded-2xl border border-yellow-300/40 bg-[#030603] p-6 shadow-neon-soft">
+            <p className="font-mono text-sm uppercase tracking-[0.18em] text-yellow-100">
+              Confirm API key rotation
+            </p>
+            <p className="mt-4 leading-7 text-green-100/75">
+              Rotating the API key immediately invalidates the current key for whitelist export and
+              campaign administration. Copy the new key after rotation and update partner backends.
+            </p>
+            <div className="mt-6 flex flex-wrap justify-end gap-3">
+              <button
+                className="rounded-xl border border-green-100/20 px-4 py-2 text-green-100"
+                onClick={() => setRotateModalOpen(false)}
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                className="rounded-xl border border-yellow-300/40 bg-yellow-300/10 px-4 py-2 text-yellow-100"
+                onClick={rotateApiKey}
+                type="button"
+              >
+                Rotate and reveal new key
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
+}
+
+function toLocalDateTime(value: string) {
+  const date = new Date(value);
+  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+  return date.toISOString().slice(0, 16);
 }

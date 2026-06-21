@@ -23,6 +23,9 @@ export async function POST(request: Request) {
     test: true,
   };
   let status = "pending";
+  let responseBody: string | null = null;
+  let responseStatus: number | null = null;
+  let responseHeaders: Record<string, string> = {};
 
   try {
     const response = await fetch(campaign.webhookUrl, {
@@ -30,6 +33,9 @@ export async function POST(request: Request) {
       headers: { "content-type": "application/json" },
       method: "POST",
     });
+    responseStatus = response.status;
+    responseHeaders = Object.fromEntries(response.headers.entries());
+    responseBody = (await response.text()).slice(0, 4_000);
     status = response.ok ? "sent" : `failed:${response.status}`;
   } catch (error) {
     status = `failed:${error instanceof Error ? error.message : "unknown"}`;
@@ -44,5 +50,12 @@ export async function POST(request: Request) {
     },
   });
 
-  return NextResponse.json({ status });
+  return NextResponse.json({
+    payload,
+    responseBody,
+    responseHeaders,
+    responseStatus,
+    status,
+    webhookUrl: campaign.webhookUrl,
+  });
 }
