@@ -5,13 +5,15 @@ import bs58 from "bs58";
 import { useEffect, useState } from "react";
 
 import { CapsuleCard } from "@/components/CapsuleCard";
-import { MorphWalletVault } from "@/components/MorphWalletVault";
+import { MorphWalletVault, type BackupJson } from "@/components/MorphWalletVault";
 import { TerminalPanel } from "@/components/TerminalPanel";
 import { TierMeter } from "@/components/TierMeter";
 import { WalletConnectButton } from "@/components/WalletConnectButton";
 import { WireframeCard } from "@/components/WireframeCard";
+import { upsertCapsuleVaultRecord } from "@/lib/capsuleVault";
 import { fetchClientWalletMetrics, type ClientWalletMetrics } from "@/lib/clientSolanaMetrics";
 import type { BlockMorphCapsule } from "@blockmorph/sdk";
+import Link from "next/link";
 
 type CampaignSummary = {
   campaignId: string;
@@ -25,6 +27,7 @@ export default function MorphPage() {
   const [campaignId, setCampaignId] = useState("general-reputation");
   const [metrics, setMetrics] = useState<ClientWalletMetrics | null>(null);
   const [morphWallet, setMorphWallet] = useState("");
+  const [morphWalletBackup, setMorphWalletBackup] = useState<BackupJson | null>(null);
   const [capsule, setCapsule] = useState<BlockMorphCapsule | null>(null);
   const [status, setStatus] = useState("");
 
@@ -90,7 +93,13 @@ export default function MorphPage() {
 
     setCapsule(json.capsule);
     setMetrics(json.metrics);
-    setStatus("Capsule issued. Download it and use the Morph Wallet for campaign registration.");
+    upsertCapsuleVaultRecord({
+      campaignName: campaigns.find((campaign) => campaign.campaignId === campaignId)?.name,
+      capsule: json.capsule,
+      encryptedMorphWalletBackup: morphWalletBackup ?? undefined,
+      savedAt: new Date().toISOString(),
+    });
+    setStatus("Capsule issued and saved to My Capsules. Download it and use the Morph Wallet for campaign registration.");
   }
 
   function downloadCapsule() {
@@ -170,7 +179,12 @@ export default function MorphPage() {
                 />
               </div>
             ) : null}
-            <MorphWalletVault onWalletGenerated={(publicKey) => setMorphWallet(publicKey)} />
+            <MorphWalletVault
+              onWalletGenerated={(publicKey, backup) => {
+                setMorphWallet(publicKey);
+                setMorphWalletBackup(backup);
+              }}
+            />
             <button
               className="rounded-xl border border-neon/50 bg-neon/10 px-5 py-3 font-mono text-neon shadow-neon-soft"
               onClick={issueCapsule}
@@ -205,6 +219,12 @@ export default function MorphPage() {
               >
                 Register Morph Wallet
               </button>
+              <Link
+                className="rounded-xl border border-neon/40 bg-black/70 px-5 py-3 text-center font-mono text-neon"
+                href="/my-capsules"
+              >
+                View My Capsules
+              </Link>
             </>
           ) : null}
         </div>

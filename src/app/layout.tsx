@@ -23,6 +23,7 @@ export const metadata: Metadata = {
 
 const links = [
   ["Morph", "/morph"],
+  ["My Capsules", "/my-capsules"],
   ["Campaigns", "/campaigns"],
   ["Verify", "/verify"],
   ["Agent Safe", "/agent-safe"],

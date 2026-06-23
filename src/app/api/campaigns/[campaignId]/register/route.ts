@@ -55,6 +55,22 @@ export async function POST(request: Request, context: RouteContext) {
     );
   }
 
+  const issuedCapsule = await prisma.issuedCapsule.findUnique({
+    where: { capsuleId: capsule.capsuleId },
+  });
+  if (!issuedCapsule) {
+    return NextResponse.json({ error: "Issued capsule record not found" }, { status: 404 });
+  }
+  if (issuedCapsule.revokedAt) {
+    return NextResponse.json(
+      {
+        error: "Capsule has been revoked",
+        revokedAt: issuedCapsule.revokedAt.toISOString(),
+      },
+      { status: 410 },
+    );
+  }
+
   try {
     const registration = await prisma.registration.create({
       data: {

@@ -3,7 +3,7 @@
 import { Keypair } from "@solana/web3.js";
 import { useState } from "react";
 
-type BackupJson = {
+export type BackupJson = {
   type: "blockmorph_encrypted_morph_wallet_v1";
   kdf: "PBKDF2-SHA256";
   iterations: number;

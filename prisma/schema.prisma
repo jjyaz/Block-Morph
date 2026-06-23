@@ -52,6 +52,7 @@ model IssuedCapsule {
   tierLabel   String
   expiresAt   DateTime
   issuedAt    DateTime @default(now())
+  revokedAt   DateTime?
   campaign    Campaign @relation(fields: [campaignId], references: [campaignId])
 
   @@unique([campaignId, nullifier])

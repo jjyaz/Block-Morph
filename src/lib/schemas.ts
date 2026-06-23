@@ -31,6 +31,10 @@ export const CapsuleVerifySchema = z.object({
   minTier: z.number().int().min(1).max(4).optional(),
 });
 
+export const CapsuleRevokeSchema = z.object({
+  capsule: CapsuleSchema,
+});
+
 export const RegisterSchema = z.object({
   capsule: CapsuleSchema,
 });

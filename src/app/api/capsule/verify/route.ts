@@ -15,6 +15,9 @@ export async function POST(request: Request) {
   const campaign = await prisma.campaign.findUnique({
     where: { campaignId: parsed.data.capsule.campaignId },
   });
+  const issuedCapsule = await prisma.issuedCapsule.findUnique({
+    where: { capsuleId: parsed.data.capsule.capsuleId },
+  });
   const expectedPolicyHash = campaign ? campaignPolicyHashFromRecord(campaign) : undefined;
   const result = verifyCapsule(parsed.data.capsule, {
     expectedPolicyHash,
@@ -31,9 +34,14 @@ export async function POST(request: Request) {
     reasons.push("Campaign is expired");
   }
 
+  if (issuedCapsule?.revokedAt) {
+    reasons.push(`Capsule was revoked at ${issuedCapsule.revokedAt.toISOString()}`);
+  }
+
   return NextResponse.json({
     campaign: campaign ? publicCampaign(campaign) : null,
     capsule: result.capsule,
+    revokedAt: issuedCapsule?.revokedAt?.toISOString() ?? null,
     reasons,
     valid: result.valid && reasons.length === 0,
   });
